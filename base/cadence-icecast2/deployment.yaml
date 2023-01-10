@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cadence-icecast2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cadence-icecast2
+  minReadySeconds: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%  # the maximum allowed existing pods that may be disabled at any time during an update
+      maxSurge: 34% # the maximum allowed replicas that can run above the desired number during an update
+  template:
+    metadata:
+      labels:
+        app: cadence-icecast2
+    spec:
+      imagePullSecrets:
+        - name: cadence-registry-key
+      containers:
+      - name: cadence-icecast2
+        image: kenellorando/cadence_icecast2:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: cadence-icecast2-config-volume
+          mountPath: /etc/icecast/cadence.xml
+          subPath: cadence.xml
+      volumes:
+        - name: cadence-icecast2-config-volume
+          configMap:
+            name: cadence-icecast2
+

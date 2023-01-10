@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cadence
+  labels:
+    app: cadence
+data:
+  CSERVER_MUSIC_DIR: /music/
+  CSERVER_REQRATELIMIT: "180"
+  CSERVER_VERSION: "5.0.2"
+  CSERVER_LOGLEVEL: "5"
+  CSERVER_SOURCEADDRESS: cadence-liquidsoap
+  CSERVER_SOURCEPORT: :1234
+  CSERVER_STREAMADDRESS: cadence-icecast2
+  CSERVER_STREAMPORT: :8000
+  CSERVER_DB_METADATA_TABLE: aria
+  CSERVER_ROOTPATH: /cadence/server/
+  CSERVER_PORT: :8080
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cadence-icecast2
+  labels:
+    app: cadence-icecast2
+data:
+  cadence.xml: | 
+    <icecast>
+      <location>Chicago, United States of America</location>
+      <admin>Ken Ellorando (kenellorando.com)</admin>
+    
+      <limits>
+    <clients>100</clients>
+          <sources>2</sources>
+          <threadpool>5</threadpool>
+          <queue-size>1048576</queue-size>
+          <client-timeout>30</client-timeout>
+          <header-timeout>15</header-timeout>
+          <source-timeout>10</source-timeout>\
+          <burst-on-connect>1</burst-on-connect>
+      </limits>
+
+      <authentication>
+          <!-- Sources log in with username 'source' -->
+          <source-password>hackme</source-password>
+          <!-- Relays log in username 'relay' -->
+          <relay-password>hackme</relay-password>
+          <!-- Admin logs in with the username given below -->
+          <admin-user>admin</admin-user>
+          <admin-password>hackme</admin-password>
+      </authentication>
+
+      <hostname>stream.cadenceradio.com</hostname>
+
+      <listen-socket>
+          <port>8000</port>
+      </listen-socket>
+
+
+      <fileserve>0</fileserve>
+
+      <paths>
+          <basedir>/usr/share/icecast</basedir>
+          <logdir>/var/log/icecast</logdir>
+          # <webroot>/usr/share/icecast/web</webroot>
+          # <adminroot>/usr/share/icecast/admin</adminroot>
+          # <alias source="/" destination="/status.xsl"/>
+      </paths>
+
+      <logging>
+          <accesslog>access.log</accesslog>
+          <errorlog>error.log</errorlog>
+          <playlistlog>playlist.log</playlistlog>
+          <loglevel>3</loglevel> <!-- 4 Debug, 3 Info, 2 Warn, 1 Error -->
+          <logsize>10000</logsize>
+      </logging>
+
+      <security>
+          <chroot>0</chroot>
+      </security>
+    </icecast>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cadence-liquidsoap
+  labels:
+    app: cadence-liquidsoap
+data:
+  cadence.liq: | 
+    # Documentation for adding sources, live mounts, jingles, etc.
+    # http://savonet.sourceforge.net/doc-svn/complete_case.html
+    set("log.file.path", "/var/log/liquidsoap/liquidsoap.log")
+    set("log.stdout", true)
+    set("server.telnet", true)
+    set("server.telnet.bind_addr", "0.0.0.0")
+
+    # 1. Lowest priority: play all music in the target directory at random.
+    default = mksafe(playlist(mode="randomize", "/music/"))
+    # 2. Next priority: play user requests first if there are any in the queue.
+    radio = fallback([ request.queue(id="request"), default])
+    # 3. Next priority: play live input stream if one is connected. 
+    full = fallback(track_sensitive=false, [input.http("http://localhost:8000/live.ogg"), radio])
+
+    # Output the full stream in OGG
+    output.icecast(%vorbis.cbr(bitrate=192), host="cadence-icecast2",port=8000,password="hackme", mount="cadence1",full)

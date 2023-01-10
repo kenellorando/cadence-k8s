@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cadence
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cadence
+  minReadySeconds: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%  # the maximum allowed existing pods that may be disabled at any time during an update
+      maxSurge: 34% # the maximum allowed replicas that can run above the desired number during an update
+  template:
+    metadata:
+      labels:
+        app: cadence
+    spec:
+      # imagePullSecrets:
+      #   - name: cadence-registry-key
+      containers:
+      - name: cadence
+        image: kenellorando/cadence:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 2
+        # command:
+        #   - tail
+        #   - "-f"
+        #   - /dev/null
+        envFrom:
+        - configMapRef:
+            name: cadence
+        volumeMounts:
+        - name: cadence-music
+          mountPath: /music
+      volumes:
+        - name: cadence-music
+          persistentVolumeClaim:
+            claimName: cadence-pvc

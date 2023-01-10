@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cadence-liquidsoap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cadence-liquidsoap
+  minReadySeconds: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%  # the maximum allowed existing pods that may be disabled at any time during an update
+      maxSurge: 34% # the maximum allowed replicas that can run above the desired number during an update
+  template:
+    metadata:
+      labels:
+        app: cadence-liquidsoap
+    spec:
+      imagePullSecrets:
+        - name: cadence-registry-key
+      containers:
+      - name: cadence-liquidsoap
+        image: kenellorando/cadence_liquidsoap:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1234
+        volumeMounts:
+        - name: cadence-liquidsoap-config-volume
+          mountPath: /etc/liquidsoap/cadence.liq
+          subPath: cadence.liq
+        - name: cadence-music
+          mountPath: /music
+      volumes:
+        - name: cadence-liquidsoap-config-volume
+          configMap:
+            name: cadence-liquidsoap
+        - name: cadence-music
+          persistentVolumeClaim:
+            claimName: cadence-pvc
+

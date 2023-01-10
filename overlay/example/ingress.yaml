@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cadence
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400s"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400s"
+    nginx.ingress.kubernetes.io/eventsource: "true"
+spec:
+  rules:
+  - host: web.mydomain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cadence
+            port:
+              number: 8080
+  - host: stream.mydomain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cadence-icecast2
+            port:
+              number: 8000
