@@ -34,4 +34,6 @@ spec:
         - name: cadence-icecast2-config-volume
           configMap:
             name: cadence-icecast2
-
+        - name: cadence-music
+          persistentVolumeClaim:
+            claimName: cadence-pvc
