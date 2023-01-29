@@ -11,8 +11,8 @@ I run this on my home cluster for fun and it works, with some caveats:
 If you want to run a real production radio stack, please use Cadence's default method with Docker Compose. If you don't have problems with this or just really love Cadence or Kubernetes, keep reading.
 
 ## Directory
-`base/` - Kubernetes resources defining generic Cadence Radio stack components. You aren't going to change anything here.
-`overlay/` - User-modifiable deployment resources subdivided by environment. An `example` is provided for you to copy and modify.
+- `base/` - Kubernetes resources defining generic Cadence Radio stack components. You aren't going to change anything here.
+- `overlay/` - User-modifiable deployment resources subdivided by environment. An `example` environment is provided for you to copy and modify.
 
 
 # Start Here
@@ -21,7 +21,7 @@ This example will create a new Cadence stack production environment, ready for p
 
 ## Prerequisites
 
-1. It assumes you have an nginx Ingress Controller installed to your cluster.
+1. You have an nginx Ingress Controller installed to your cluster.
 
 ## Deployment
 
