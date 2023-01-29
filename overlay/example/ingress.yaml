@@ -3,12 +3,12 @@ kind: Ingress
 metadata:
   name: cadence
   annotations:
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400s"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400s"
-    nginx.ingress.kubernetes.io/eventsource: "true"
+    nginx.org/proxy-send-timeout: "86400s"
+    nginx.org/proxy-read-timeout: "86400s"
+    nginx.org/eventsource: "true"
 spec:
   rules:
-  - host: web.mydomain
+  - host: cadenceradio.com
     http:
       paths:
       - path: /
@@ -18,7 +18,7 @@ spec:
             name: cadence
             port:
               number: 8080
-  - host: stream.mydomain
+  - host: stream.cadenceradio.com
     http:
       paths:
       - path: /
