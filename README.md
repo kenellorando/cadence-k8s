@@ -1,12 +1,17 @@
 # cadence-k8s
 
+
 Kubernetes `kustomize` configuration for the components of a Cadence Radio stack: `cadence`, `cadence_icecast2`, and `cadence_liquidsoap`.
 
-> **Warning** Music storage is currently handled using local-storage persistent volumes. All Cadence components must run on the node with the volume. If you want to run a real production radio stack, I recommend you use Cadence's default Docker Compose method. If you don't have problems with this or just really love Cadence or Kubernetes, keep reading.
+> **Warning**: Currently out of date. This project supports Cadence Radio stacks running at `5.0.2`. It does not have support for more recent updates which use Redis, Postgres, and an nginx reverse-proxy within the stack.
+
+> **Warning**: Music storage is currently supported through local-storage persistent volumes. All Cadence components must run on the node with the volume. 
 
 ## Repository Organization
-- `base/` Resources defining standard Cadence Radio stack components for a Kubernetes cluster. You aren't going to change anything here.
+- `base/` Manifests defining the standard Cadence Radio stack components. You aren't going to change anything here.
 - `overlay/` - User-modifiable deployment resources subdivided by environment. Use these to customize the base Cadence deployment for your particular needs. An `example` environment is provided for you to copy and modify.
+
+Basically, deployment with cadence-k8s takes the `base/` content, layers your `overlay/<env>` content on top of it, then launches the stack.
 
 ## Requirements
 
@@ -15,14 +20,12 @@ Kubernetes `kustomize` configuration for the components of a Cadence Radio stack
 
 ## Deployment
 
-1. Copy the four files from `overlay/example` into a new directory called `overlay/production`. Switch to `overlay/production` and make some modifications to each new file.
-2. Modify `ingress.yaml`:
-   1. If you have your own domain names, set the two new `hosts`. The first listed host is the address meant for Cadence UI, and the second host is the address meant for Cadence Icecast Stream.
-3. Modify `configmap.yaml`:
-   1. Change every instance of `hackme` to a secure password.
-   2. If you changed domain names in step 2, change the `<hostname>` on line 53 to match the domain you set for Cadence Icecast.
-4. By default, `persistentVolumeClaim.yaml` will create a 50MB storage block for music under the path `/clusterstorage/cadence/`. Change the storage amount if desired. Before continuing, verify you've already made a local PV available on a node in your cluster.
-5. `kubectl kustomize .` to validate your configuration, then `kubectl apply -k .` to apply.
+1. Copy `overlay/example` into a new directory called `overlay/<env>`.
+2. Switch to `overlay/<env>` and make some modifications to these files.
+- `ingress.yaml`: If you have your own domain names, set them as the two `hosts`. The first listed host is the address meant for Cadence UI, and the second host is the address meant for Cadence Icecast Stream.
+- `configmap.yaml`: Change every instance of `hackme` to a secure password. If you changed domain names in `ingress.yaml` earlier, change the `<hostname>` on line 53 to match the domain you set for Cadence Icecast.
+- `persistentVolumeClaim.yaml`: By default, this file is configured to create a 50MB storage block for music under the path `/clusterstorage/cadence/`. Change the storage amount if desired.
+3. Run `kubectl kustomize .` to validate your configuration, then `kubectl apply -k .` to apply.
 
 ## Accessing Services
 
